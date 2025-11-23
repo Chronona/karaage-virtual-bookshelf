@@ -24,7 +24,7 @@ class VirtualBookshelf {
         this.booksPerPage = 50;
         this.sortOrder = 'custom';
         this.sortDirection = 'desc';
-        
+
         this.init();
     }
 
@@ -37,10 +37,10 @@ class VirtualBookshelf {
             this.renderBookshelfOverview();
             this.updateDisplay();
             this.updateStats();
-            
+
             // Initialize HighlightsManager after bookshelf is ready
             window.highlightsManager = new HighlightsManager(this);
-            
+
             // Hide loading indicator
             this.hideLoading();
         } catch (error) {
@@ -57,7 +57,7 @@ class VirtualBookshelf {
 
         // Get books from BookManager instead of direct kindle.json
         this.books = this.bookManager.getAllBooks();
-        
+
         // Load config data
         let config = {};
         try {
@@ -67,10 +67,10 @@ class VirtualBookshelf {
             console.error('Failed to load config.json:', error);
             throw new Error('設定ファイルの読み込みに失敗しました');
         }
-        
+
         // Check localStorage first for user data
         const savedUserData = localStorage.getItem('virtualBookshelf_userData');
-        
+
         if (savedUserData) {
             // Use localStorage data as primary source
             this.userData = JSON.parse(savedUserData);
@@ -81,7 +81,7 @@ class VirtualBookshelf {
                 if (!libraryResponse.ok) {
                     throw new Error('library.json not found');
                 }
-                
+
                 const text = await libraryResponse.text();
                 if (!text.trim()) {
                     // 空ファイルの場合はデフォルトデータを使用
@@ -118,21 +118,21 @@ class VirtualBookshelf {
                 this.userData = this.createDefaultUserData();
             }
         }
-        
+
         // Merge config into userData settings
         this.userData.settings = { ...this.userData.settings, ...config };
-        
+
         this.currentView = this.userData.settings.defaultView || 'covers';
-        
+
         // Load cover size setting
         const coverSize = this.userData.settings.coverSize || 'medium';
         document.getElementById('cover-size').value = coverSize;
-        
+
         // ハイブリッド表示は使わない、代わりにcoversを使用
         if (this.currentView === 'hybrid') {
             this.currentView = 'covers';
         }
-        
+
         // Load books per page setting
         if (this.userData.settings.booksPerPage) {
             if (this.userData.settings.booksPerPage === 'all') {
@@ -155,27 +155,27 @@ class VirtualBookshelf {
         document.getElementById('view-covers').addEventListener('click', () => this.setView('covers'));
         document.getElementById('view-list').addEventListener('click', () => this.setView('list'));
 
-        
+
         // Search
         document.getElementById('search-input').addEventListener('input', (e) => {
             this.search(e.target.value);
         });
-        
+
         // Filters
-        
-        
+
+
         // Star rating filters
         ['star-0', 'star-1', 'star-2', 'star-3', 'star-4', 'star-5'].forEach(id => {
             document.getElementById(id).addEventListener('change', () => this.applyFilters());
         });
-        
+
         // Sort
         document.getElementById('sort-order').addEventListener('change', (e) => {
             this.sortOrder = e.target.value;
             this.updateSortDirectionButton();
             this.applySorting();
         });
-        
+
         document.getElementById('sort-direction').addEventListener('click', () => {
             this.toggleSortDirection();
         });
@@ -307,7 +307,7 @@ class VirtualBookshelf {
         }
 
         // ASIN入力フィールドでEnterキー押下時の自動取得
-        const asinInput = document.getElementById('manual-asin');
+        const asinInput = document.getElementById('manual-isbn');
         if (asinInput) {
             asinInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -362,13 +362,13 @@ class VirtualBookshelf {
 
     setView(view) {
         this.currentView = view;
-        
+
         // Update button states
         document.querySelectorAll('.view-toggle .btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.getElementById(`view-${view}`).classList.add('active');
-        
+
         this.updateDisplay();
         this.saveUserData();
     }
@@ -387,8 +387,8 @@ class VirtualBookshelf {
                     return false;
                 }
             }
-            
-            
+
+
             // Star rating filter
             const enabledRatings = [];
             for (let i = 0; i <= 5; i++) {
@@ -400,7 +400,7 @@ class VirtualBookshelf {
             if (!enabledRatings.includes(bookRating)) {
                 return false;
             }
-            
+
             // Search filter
             if (this.searchQuery) {
                 const searchText = `${book.title} ${book.authors}`.toLowerCase();
@@ -408,10 +408,10 @@ class VirtualBookshelf {
                     return false;
                 }
             }
-            
+
             return true;
         });
-        
+
         this.applySorting();
     }
 
@@ -419,29 +419,29 @@ class VirtualBookshelf {
         this.filteredBooks.sort((a, b) => {
             let aValue = a[this.sortOrder];
             let bValue = b[this.sortOrder];
-            
+
             if (this.sortOrder === 'acquiredTime') {
                 aValue = parseInt(aValue);
                 bValue = parseInt(bValue);
             }
-            
+
             if (typeof aValue === 'string') {
                 aValue = aValue.toLowerCase();
                 bValue = bValue.toLowerCase();
             }
-            
+
             let comparison = 0;
             if (aValue > bValue) comparison = 1;
             if (aValue < bValue) comparison = -1;
-            
+
             return this.sortDirection === 'asc' ? comparison : -comparison;
         });
-        
+
         this.currentPage = 1;
         this.updateDisplay();
         this.updateStats();
     }
-    
+
     toggleSortDirection() {
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         this.updateSortDirectionButton();
@@ -461,15 +461,15 @@ class VirtualBookshelf {
                 this.booksPerPage = parsedValue;
             }
         }
-        
+
         this.currentPage = 1;
-        
+
         // Save the setting
         if (!this.userData.settings) {
             this.userData.settings = {};
         }
         this.userData.settings.booksPerPage = value;
-        
+
         this.updateDisplay();
         this.saveUserData();
     }
@@ -480,18 +480,18 @@ class VirtualBookshelf {
             this.userData.settings = {};
         }
         this.userData.settings.coverSize = size;
-        
+
         // Apply CSS class to bookshelf container
         const bookshelf = document.getElementById('bookshelf');
         bookshelf.classList.remove('size-small', 'size-medium', 'size-large');
         bookshelf.classList.add(`size-${size}`);
-        
+
         this.saveUserData();
     }
-    
+
     updateSortDirectionButton() {
         const button = document.getElementById('sort-direction');
-        
+
         if (this.sortOrder === 'custom') {
             button.textContent = '📝 カスタム順';
             button.disabled = true;
@@ -499,7 +499,7 @@ class VirtualBookshelf {
         } else {
             button.disabled = false;
             button.style.opacity = '1';
-            
+
             // 並び順の種類に応じてテキストを変更
             if (this.sortOrder === 'acquiredTime') {
                 // 時系列・状態の場合
@@ -528,13 +528,13 @@ class VirtualBookshelf {
     updateDisplay() {
         const bookshelf = document.getElementById('bookshelf');
         bookshelf.textContent = '';
-        
+
         // Apply view and cover size classes
         const coverSize = this.userData.settings?.coverSize || 'medium';
         bookshelf.className = `bookshelf view-${this.currentView} size-${coverSize}`;
-        
+
         this.renderStandardView(bookshelf);
-        
+
         this.setupPagination();
     }
 
@@ -544,26 +544,26 @@ class VirtualBookshelf {
         // Apply custom book order only if sort order is set to 'custom'
         const currentBookshelfId = document.getElementById('bookshelf-selector').value;
         let booksToRender = [...this.filteredBooks];
-        
+
         if (this.sortOrder === 'custom' && this.userData.bookOrder && this.userData.bookOrder[currentBookshelfId]) {
             const customOrder = this.userData.bookOrder[currentBookshelfId];
-            
+
             // Sort books according to custom order, with unordered books at the end
             booksToRender.sort((a, b) => {
                 const aIndex = customOrder.indexOf(a.asin);
                 const bIndex = customOrder.indexOf(b.asin);
-                
+
                 if (aIndex === -1 && bIndex === -1) return 0; // Both not in custom order
                 if (aIndex === -1) return 1; // a not in custom order, put at end
                 if (bIndex === -1) return -1; // b not in custom order, put at end
                 return aIndex - bIndex; // Both in custom order, use custom order
             });
         }
-        
+
         // Handle pagination - 値を一度に取得して固定
         const booksPerPage = parseInt(this.booksPerPage) || 50;  // 安全な値として取得
         const currentPage = parseInt(this.currentPage) || 1;
-        
+
         let booksToShow;
         if (booksPerPage >= this.filteredBooks.length) {
             // Show all books
@@ -574,7 +574,7 @@ class VirtualBookshelf {
             const endIndex = startIndex + booksPerPage;
             booksToShow = booksToRender.slice(startIndex, endIndex);
         }
-        
+
         booksToShow.forEach(book => {
             container.appendChild(this.createBookElement(book, this.currentView));
         });
@@ -584,13 +584,13 @@ class VirtualBookshelf {
         const bookElement = document.createElement('div');
         bookElement.className = 'book-item';
         bookElement.dataset.asin = book.asin;
-        
+
         // Add drag-and-drop attributes
         bookElement.draggable = true;
         bookElement.setAttribute('data-book-asin', book.asin);
-        
+
         const userNote = this.userData.notes[book.asin];
-        
+
         if (displayType === 'cover' || displayType === 'covers') {
             const amazonUrl = this.bookManager.getAmazonUrl(book, this.userData.settings.affiliateId);
             bookElement.innerHTML = `
@@ -639,13 +639,13 @@ class VirtualBookshelf {
                 </div>
             `;
         }
-        
+
         // Add drag event listeners
         bookElement.addEventListener('dragstart', (e) => this.handleDragStart(e));
         bookElement.addEventListener('dragover', (e) => this.handleDragOver(e));
         bookElement.addEventListener('drop', (e) => this.handleDrop(e));
         bookElement.addEventListener('dragend', (e) => this.handleDragEnd(e));
-        
+
         bookElement.addEventListener('click', (e) => {
             // Prevent click when dragging or clicking drag handle
             if (e.target.closest('.drag-handle') || bookElement.classList.contains('dragging')) {
@@ -668,7 +668,7 @@ class VirtualBookshelf {
                 e.stopPropagation();
             }
         });
-        
+
         return bookElement;
     }
 
@@ -688,13 +688,13 @@ class VirtualBookshelf {
             e.preventDefault();
         }
         e.dataTransfer.dropEffect = 'move';
-        
+
         // Visual feedback
         const target = e.target.closest('.book-item');
         if (target && target !== this.draggedElement) {
             target.style.borderLeft = '3px solid #3498db';
         }
-        
+
         return false;
     }
 
@@ -724,7 +724,7 @@ class VirtualBookshelf {
         }
         this.draggedElement = null;
         this.draggedASIN = null;
-        
+
         // Clear all visual feedback
         document.querySelectorAll('.book-item').forEach(item => {
             item.style.borderLeft = '';
@@ -734,7 +734,7 @@ class VirtualBookshelf {
 
     reorderBooks(draggedASIN, targetASIN) {
         const currentBookshelfId = document.getElementById('bookshelf-selector').value;
-        
+
         // Initialize bookOrder if it doesn't exist
         if (!this.userData.bookOrder) {
             this.userData.bookOrder = {};
@@ -744,7 +744,7 @@ class VirtualBookshelf {
         }
 
         let bookOrder = this.userData.bookOrder[currentBookshelfId];
-        
+
         // If this is the first time ordering for this bookshelf, initialize with current filtered order
         if (bookOrder.length === 0) {
             bookOrder = this.filteredBooks.map(book => book.asin);
@@ -774,7 +774,7 @@ class VirtualBookshelf {
         // Switch to custom order automatically when manually reordering
         this.sortOrder = 'custom';
         document.getElementById('sort-order').value = 'custom';
-        
+
         // Save and refresh display
         this.saveUserData();
         this.updateDisplay();
@@ -835,7 +835,7 @@ class VirtualBookshelf {
                             </div>
                         </div>
 
-                        
+
                         <div class="book-actions">
                             <a class="amazon-link" href="${amazonUrl}" target="_blank" rel="noopener">
                                 📚 Amazonで見る
@@ -844,19 +844,19 @@ class VirtualBookshelf {
                                 🗑️ 本を削除
                             </button>
                         </div>
-                        
+
                         <div class="bookshelf-actions" style="margin-top: 1rem; ${isEditMode ? '' : 'display: none;'}">
                             <div style="margin-bottom: 1rem;">
                                 <label for="bookshelf-select-${book.asin}">📚 本棚に追加:</label>
                                 <select id="bookshelf-select-${book.asin}" class="bookshelf-select">
                                     <option value="">本棚を選択...</option>
-                                    ${this.userData.bookshelves ? this.userData.bookshelves.map(bs => 
+                                    ${this.userData.bookshelves ? this.userData.bookshelves.map(bs =>
                                         `<option value="${bs.id}">${bs.emoji || '📚'} ${bs.name}</option>`
                                     ).join('') : ''}
                                 </select>
                                 <button class="btn btn-secondary add-to-bookshelf" data-asin="${book.asin}">追加</button>
                             </div>
-                            
+
                             <div class="current-bookshelves">
                                 <label>📚 現在の本棚:</label>
                                 <div id="current-bookshelves-${book.asin}">
@@ -865,22 +865,22 @@ class VirtualBookshelf {
                                         .map(bs => `
                                             <div class="bookshelf-item" style="display: inline-flex; align-items: center; margin: 0.25rem; padding: 0.25rem 0.5rem; background-color: #f0f0f0; border-radius: 4px;">
                                                 <span>${bs.emoji || '📚'} ${bs.name}</span>
-                                                <button class="btn btn-small btn-danger remove-from-bookshelf" 
-                                                        data-asin="${book.asin}" 
-                                                        data-bookshelf-id="${bs.id}" 
+                                                <button class="btn btn-small btn-danger remove-from-bookshelf"
+                                                        data-asin="${book.asin}"
+                                                        data-bookshelf-id="${bs.id}"
                                                         style="margin-left: 0.5rem; padding: 0.125rem 0.25rem; font-size: 0.75rem;">
                                                     ❌
                                                 </button>
                                             </div>
                                         `).join('') : ''}
                                 </div>
-                                ${this.userData.bookshelves && this.userData.bookshelves.filter(bs => bs.books && bs.books.includes(book.asin)).length === 0 ? 
+                                ${this.userData.bookshelves && this.userData.bookshelves.filter(bs => bs.books && bs.books.includes(book.asin)).length === 0 ?
                                     '<p style="color: #888; font-style: italic; margin: 0.5rem 0;">この本はまだどの本棚にも追加されていません</p>' : ''}
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="book-notes-section" style="${!isEditMode && !userNote.memo ? 'display: none;' : ''}">
                     <h3>📝 個人メモ</h3>
                     ${!isEditMode && userNote.memo ? `
@@ -901,14 +901,14 @@ class VirtualBookshelf {
                         <button class="btn btn-small rating-reset" data-asin="${book.asin}">評価をリセット</button>
                     </div>
                 </div>
-                
+
                 <div class="book-highlights-section" id="highlights-${book.asin}">
                     <h3>🎯 ハイライト</h3>
                     <div class="highlights-loading">ハイライトを読み込み中...</div>
                 </div>
             </div>
         `;
-        
+
         // Setup modal event listeners
         const noteTextarea = modalBody.querySelector('.note-textarea');
         noteTextarea.addEventListener('blur', (e) => {
@@ -921,14 +921,14 @@ class VirtualBookshelf {
                 this.updateMemoPreview(e.target);
             });
         }
-        
+
         const addToBookshelfBtn = modalBody.querySelector('.add-to-bookshelf');
         if (addToBookshelfBtn) {
             addToBookshelfBtn.addEventListener('click', (e) => {
                 this.addBookToBookshelf(e.target.dataset.asin);
             });
         }
-        
+
         // Remove from bookshelf buttons
         modalBody.querySelectorAll('.remove-from-bookshelf').forEach(button => {
             button.addEventListener('click', (e) => {
@@ -937,7 +937,7 @@ class VirtualBookshelf {
                 this.removeFromBookshelf(asin, bookshelfId);
             });
         });
-        
+
         // Rating reset button
         const ratingResetBtn = modalBody.querySelector('.rating-reset');
         if (ratingResetBtn) {
@@ -966,7 +966,7 @@ class VirtualBookshelf {
                 this.deleteBook(e.target.dataset.asin);
             });
         }
-        
+
         // Add book edit functionality
         const saveChangesBtn = modalBody.querySelector('.save-book-changes');
         if (saveChangesBtn) {
@@ -974,8 +974,8 @@ class VirtualBookshelf {
                 this.saveBookChanges(e.target.dataset.asin);
             });
         }
-        
-        
+
+
         // Add star rating functionality
         const starRating = modalBody.querySelector('.star-rating');
         if (starRating) {
@@ -991,7 +991,7 @@ class VirtualBookshelf {
                     star.style.color = '#ddd';
                 }
             });
-            
+
             // Add hover effects for better UX
             starRating.addEventListener('mouseover', (e) => {
                 if (e.target.classList.contains('star')) {
@@ -1006,7 +1006,7 @@ class VirtualBookshelf {
                     });
                 }
             });
-            
+
             starRating.addEventListener('mouseleave', () => {
                 const currentRating = parseInt(starRating.dataset.currentRating) || 0;
                 const stars = starRating.querySelectorAll('.star');
@@ -1018,40 +1018,40 @@ class VirtualBookshelf {
                     }
                 });
             });
-            
+
             starRating.addEventListener('click', (e) => {
                 if (e.target.classList.contains('star')) {
                     const rating = parseInt(e.target.dataset.rating);
                     const asin = starRating.dataset.asin;
                     console.log(`⭐ 星評価: ${rating}星, ASIN: ${asin}`);
                     this.saveRating(asin, rating);
-                    
+
                     // Update current rating data
                     starRating.dataset.currentRating = rating;
-                    
+
                     // Update star display in modal
                     const stars = starRating.querySelectorAll('.star');
                     stars.forEach((star, index) => {
                         star.classList.toggle('active', (index + 1) <= rating);
                     });
-                    
+
                     // Update display in main bookshelf
                     this.updateDisplay();
                     this.updateStats();
                 }
             });
         }
-        
+
         // Load highlights
         this.loadBookHighlights(book);
-        
+
         modal.classList.add('show');
     }
 
     closeModal() {
         const modal = document.getElementById('book-modal');
         modal.classList.remove('show');
-        
+
         // Clear modal body to prevent event listener conflicts
         const modalBody = document.getElementById('modal-body');
         modalBody.innerHTML = '';
@@ -1072,19 +1072,19 @@ class VirtualBookshelf {
     async loadBookHighlights(book) {
         const highlightsContainer = document.getElementById(`highlights-${book.asin}`);
         const loadingElement = highlightsContainer.querySelector('.highlights-loading');
-        
+
         try {
             // Use HighlightsManager for ASIN-based loading
             if (window.highlightsManager) {
                 const highlights = await window.highlightsManager.loadHighlightsForBook(book);
-                
+
                 loadingElement.style.display = 'none';
-                
+
                 if (highlights.length > 0) {
                     // Use the HighlightsManager's render method
                     const highlightsListContainer = document.createElement('div');
                     window.highlightsManager.renderHighlights(highlights, highlightsListContainer);
-                    
+
                     // Replace loading with rendered highlights
                     highlightsContainer.innerHTML = '<h3>🎯 ハイライト</h3>';
                     highlightsContainer.appendChild(highlightsListContainer);
@@ -1105,7 +1105,7 @@ class VirtualBookshelf {
 
     updateStats() {
         const totalBooks = this.books.length;
-        
+
         document.getElementById('total-books').textContent = totalBooks.toLocaleString();
     }
 
@@ -1114,34 +1114,34 @@ class VirtualBookshelf {
     setupPagination() {
         const pagination = document.getElementById('pagination');
         const totalPages = Math.ceil(this.filteredBooks.length / this.booksPerPage);
-        
+
         // Hide pagination if showing all books or only one page
         if (totalPages <= 1 || this.booksPerPage >= this.filteredBooks.length) {
             pagination.innerHTML = '';
             return;
         }
-        
+
         let paginationHTML = `
             <button ${this.currentPage === 1 ? 'disabled' : ''} onclick="bookshelf.goToPage(${this.currentPage - 1})">前へ</button>
         `;
-        
+
         for (let i = Math.max(1, this.currentPage - 2); i <= Math.min(totalPages, this.currentPage + 2); i++) {
             paginationHTML += `
                 <button class="${i === this.currentPage ? 'current-page' : ''}" onclick="bookshelf.goToPage(${i})">${i}</button>
             `;
         }
-        
+
         paginationHTML += `
             <button ${this.currentPage === totalPages ? 'disabled' : ''} onclick="bookshelf.goToPage(${this.currentPage + 1})">次へ</button>
         `;
-        
+
         pagination.innerHTML = paginationHTML;
     }
 
     goToPage(page) {
         this.currentPage = page;
         this.updateDisplay();
-        
+
         // 本棚エリアまでスクロール
         const bookshelf = document.getElementById('bookshelf');
         if (bookshelf) {
@@ -1182,7 +1182,7 @@ class VirtualBookshelf {
         // BookManagerから書籍データを取得
         const bookManager = window.bookManager;
         const books = {};
-        
+
         // 書籍データを統合形式に変換
         if (bookManager && bookManager.library && bookManager.library.books) {
             bookManager.library.books.forEach(book => {
@@ -1213,7 +1213,7 @@ class VirtualBookshelf {
             },
             version: '2.0'
         };
-        
+
         const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1224,16 +1224,16 @@ class VirtualBookshelf {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         console.log('📁 library.jsonファイルを自動生成しました');
     }
 
     updateBookshelfSelector() {
         const selector = document.getElementById('bookshelf-selector');
         if (!selector) return;
-        
+
         selector.innerHTML = '<option value="all">📚 全ての本</option>';
-        
+
         if (this.userData.bookshelves) {
             this.userData.bookshelves.forEach(bookshelf => {
                 const option = document.createElement('option');
@@ -1298,7 +1298,7 @@ class VirtualBookshelf {
         // Remove existing event listeners to prevent duplicates
         const oldContainer = container.cloneNode(true);
         container.parentNode.replaceChild(oldContainer, container);
-        
+
         // Add event listeners for edit/delete/share buttons
         oldContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('edit-bookshelf')) {
@@ -1340,10 +1340,10 @@ class VirtualBookshelf {
             descriptionInput.value = '';
             isPublicInput.checked = false;
         }
-        
+
         // Store current editing bookshelf
         this.currentEditingBookshelf = bookshelfToEdit;
-        
+
         modal.classList.add('show');
         nameInput.focus();
     }
@@ -1397,7 +1397,7 @@ class VirtualBookshelf {
     editBookshelf(bookshelfId) {
         const bookshelf = this.userData.bookshelves.find(b => b.id === bookshelfId);
         if (!bookshelf) return;
-        
+
         this.showBookshelfForm(bookshelf);
     }
 
@@ -1410,7 +1410,7 @@ class VirtualBookshelf {
             this.saveUserData();
             this.updateBookshelfSelector();
             this.renderBookshelfList();
-            
+
             // If currently viewing this bookshelf, switch to "all"
             if (this.currentBookshelf === bookshelfId) {
                 this.currentBookshelf = 'all';
@@ -1423,7 +1423,7 @@ class VirtualBookshelf {
     addBookToBookshelf(asin) {
         const bookshelfSelect = document.getElementById(`bookshelf-select-${asin}`);
         const bookshelfId = bookshelfSelect.value;
-        
+
         if (!bookshelfId) {
             alert('📚 本棚を選択してください');
             return;
@@ -1447,9 +1447,9 @@ class VirtualBookshelf {
         bookshelf.books.push(asin);
         this.saveUserData();
         this.renderBookshelfList(); // Update the bookshelf management UI if open
-        
+
         alert(`✅ 「${bookshelf.name}」に追加しました！`);
-        
+
         // Reset the dropdown
         bookshelfSelect.value = '';
     }
@@ -1460,28 +1460,28 @@ class VirtualBookshelf {
             alert('❌ 本棚が見つかりません');
             return;
         }
-        
+
         const book = this.books.find(b => b.asin === asin);
         const bookTitle = book ? book.title : 'この本';
-        
+
         if (!bookshelf.books.includes(asin)) {
             alert(`📚 この本は「${bookshelf.name}」にありません`);
             return;
         }
-        
+
         if (confirm(`📚 「${bookTitle}」を「${bookshelf.name}」から除外しますか？\n\n⚠️ 本自体は削除されず、この本棚からのみ削除されます。`)) {
             bookshelf.books = bookshelf.books.filter(bookAsin => bookAsin !== asin);
             this.saveUserData();
             this.renderBookshelfList(); // Update the bookshelf management UI if open
-            
+
             // If currently viewing this bookshelf, update the display
             if (this.currentBookshelf === bookshelfId) {
                 this.applyFilters();
                 this.updateDisplay();
             }
-            
+
             alert(`✅ 「${bookTitle}」を「${bookshelf.name}」から除外しました`);
-            
+
             // Close modal to show the updated bookshelf
             this.closeModal();
         }
@@ -1509,12 +1509,12 @@ class VirtualBookshelf {
         try {
             // BookManager で完全削除
             await this.bookManager.deleteBook(asin, true);
-            
+
             // ユーザーデータからも削除
             if (this.userData.notes[asin]) {
                 delete this.userData.notes[asin];
             }
-            
+
             // 全ての本棚から削除
             if (this.userData.bookshelves) {
                 this.userData.bookshelves.forEach(bookshelf => {
@@ -1525,16 +1525,16 @@ class VirtualBookshelf {
             }
 
             this.saveUserData();
-            
+
             // 表示を更新
             this.books = this.bookManager.getAllBooks();
             this.applyFilters();
             this.updateStats();
             this.renderBookshelfOverview();
-            
+
             // モーダルを閉じる
             this.closeModal();
-            
+
             alert(`✅ 「${book.title}」を削除しました`);
         } catch (error) {
             console.error('削除エラー:', error);
@@ -1613,7 +1613,7 @@ class VirtualBookshelf {
             📊 総数: ${totalBooks}冊 | 新規: ${newBooks}冊 | インポート済み: ${existingBooks}冊 | 表示中: ${visibleBooks}冊
         `;
     }
-    
+
     setupBookSelectionListeners() {
         // フィルター変更時にリストを再描画
         document.getElementById('hide-existing-books').addEventListener('change', () => {
@@ -1651,49 +1651,49 @@ class VirtualBookshelf {
             this.cancelImport();
         });
     }
-    
+
     updateSelectedCount() {
         const checkboxes = document.querySelectorAll('#book-list input[type="checkbox"]:checked');
         const count = checkboxes.length;
         document.getElementById('selected-count').textContent = count;
-        
+
         const importButton = document.getElementById('import-selected-books');
         importButton.disabled = count === 0;
     }
-    
+
     async importSelectedBooks() {
         const checkboxes = document.querySelectorAll('#book-list input[type="checkbox"]:checked');
         const selectedIndices = Array.from(checkboxes).map(cb => parseInt(cb.value));
         const selectedBooks = selectedIndices.map(index => this.pendingImportBooks[index]);
-        
+
         if (selectedBooks.length === 0) {
             alert('📚 インポートする本を選択してください');
             return;
         }
-        
+
         try {
             const results = await this.bookManager.importSelectedBooks(selectedBooks);
             this.showImportResults(results);
-            
+
             // 表示を更新
             this.books = this.bookManager.getAllBooks();
             this.applyFilters();
             this.updateStats();
-            
+
             // 選択UIを非表示
             document.getElementById('book-selection').style.display = 'none';
-            
+
         } catch (error) {
             console.error('選択インポートエラー:', error);
             alert(`❌ インポートに失敗しました: ${error.message}`);
         }
     }
-    
+
     cancelImport() {
         // 選択UIを非表示にしてインポートオプションを表示
         document.getElementById('book-selection').style.display = 'none';
         document.querySelector('.import-options').style.display = 'block';
-        
+
         // 一時データをクリア
         this.pendingImportBooks = null;
         this.importSource = null;
@@ -1833,7 +1833,7 @@ class VirtualBookshelf {
     updateMemoPreview(textarea) {
         const preview = textarea.parentElement.querySelector('.note-preview');
         const previewContent = preview.querySelector('.note-preview-content');
-        
+
         const text = textarea.value.trim();
         if (text) {
             // マークダウンリンクをHTMLリンクに変換
@@ -1854,12 +1854,12 @@ class VirtualBookshelf {
 
     formatMemoForDisplay(memo, maxLength) {
         if (!memo) return '';
-        
+
         // 改行を保持しつつ、長さ制限を適用
         const lines = memo.split('\n');
         let formattedText = '';
         let currentLength = 0;
-        
+
         for (const line of lines) {
             if (currentLength + line.length > maxLength) {
                 const remainingLength = maxLength - currentLength;
@@ -1870,11 +1870,11 @@ class VirtualBookshelf {
                 }
                 break;
             }
-            
+
             formattedText += line + '\n';
             currentLength += line.length + 1; // +1 for newline
         }
-        
+
         // マークダウンリンクをHTMLリンクに変換
         return this.convertMarkdownLinksToHtml(formattedText.trim());
     }
@@ -1914,9 +1914,9 @@ class VirtualBookshelf {
             const file = fileInput.files[0];
             const text = await file.text();
             const books = JSON.parse(text);
-            
+
             this.showBookSelectionForImport(books, 'file');
-            
+
         } catch (error) {
             console.error('ファイル読み込みエラー:', error);
             alert(`❌ ファイルの読み込みに失敗しました: ${error.message}`);
@@ -1976,12 +1976,12 @@ class VirtualBookshelf {
     closeAddBookModal() {
         const modal = document.getElementById('add-book-modal');
         modal.classList.remove('show');
-        
+
         // フォームをリセット（存在する要素のみ）
         const amazonUrlInput = document.getElementById('amazon-url-input');
         if (amazonUrlInput) amazonUrlInput.value = '';
-        
-        const manualAsin = document.getElementById('manual-asin');
+
+        const manualAsin = document.getElementById('manual-isbn');
         if (manualAsin) manualAsin.value = '';
 
         const manualTitle = document.getElementById('manual-title');
@@ -2010,16 +2010,16 @@ class VirtualBookshelf {
     async fetchBookMetadata(asin) {
         try {
             // 簡易的にASINから書籍情報を推測（完全ではない）
-            
+
             // まず既存の蔵書データから同じASINがないかチェック
             const existingBook = this.books.find(book => book.asin === asin);
             if (existingBook) {
                 throw new Error('この本は既に蔵書に追加されています');
             }
-            
+
             // Amazon画像URLから表紙画像の存在確認
             const imageUrl = `https://images-amazon.com/images/P/${asin}.01.L.jpg`;
-            
+
             return {
                 asin: asin,
                 title: '', // 自動取得できない
@@ -2029,20 +2029,20 @@ class VirtualBookshelf {
                 productImage: imageUrl,
                 source: 'manual_add'
             };
-            
+
         } catch (error) {
             console.error('メタデータ取得エラー:', error);
             throw error;
         }
     }
-    
+
     fallbackToManualInput(asin) {
         // 自動取得に失敗した場合、手動入力フォームにASINを設定
         document.getElementById('manual-title').value = '';
         document.getElementById('manual-authors').value = '';
-        document.getElementById('manual-asin').value = asin;
-        document.getElementById('manual-asin').readOnly = true;
-        
+        document.getElementById('manual-isbn').value = asin;
+        document.getElementById('manual-isbn').readOnly = true;
+
         alert(`⚠️ 書籍情報の自動取得に失敗しました。\nASIN: ${asin}\n\n手動でタイトルと著者を入力してください。`);
     }
 
@@ -2050,7 +2050,7 @@ class VirtualBookshelf {
      * ASINから書籍情報を自動取得してフォームに入力
      */
     async fetchBookInfoFromASIN() {
-        const asinInput = document.getElementById('manual-asin');
+        const asinInput = document.getElementById('manual-isbn');
         const titleInput = document.getElementById('manual-title');
         const authorsInput = document.getElementById('manual-authors');
         const statusDiv = document.getElementById('asin-status');
@@ -2122,7 +2122,7 @@ class VirtualBookshelf {
      * 手動入力で書籍を追加
      */
     async addBookManually() {
-        const asin = document.getElementById('manual-asin').value.trim();
+        const asin = document.getElementById('manual-isbn').value.trim();
         const title = document.getElementById('manual-title').value.trim();
         const authors = document.getElementById('manual-authors').value.trim();
 
@@ -2147,12 +2147,12 @@ class VirtualBookshelf {
 
             const newBook = await this.bookManager.addBookManually(bookData);
             this.showAddBookSuccess(newBook);
-            
+
             // 表示を更新
             this.books = this.bookManager.getAllBooks();
             this.applyFilters();
             this.updateStats();
-            
+
         } catch (error) {
             console.error('追加エラー:', error);
             alert(`❌ 追加に失敗しました: ${error.message}`);
@@ -2182,7 +2182,7 @@ class VirtualBookshelf {
      */
     exportUnifiedData() {
         console.log('📦 エクスポート開始...');
-        
+
         // 既存のlibrary.jsonを読み込み、現在のデータと統合
         const exportData = {
             exportDate: new Date().toISOString(),
@@ -2199,7 +2199,7 @@ class VirtualBookshelf {
             },
             version: '2.0'
         };
-        
+
         // 現在表示されている書籍データをbooks形式に変換
         const books = {};
         if (this.books && this.books.length > 0) {
@@ -2223,12 +2223,12 @@ class VirtualBookshelf {
                 }
             });
         }
-        
+
         exportData.books = books;
         exportData.stats.totalBooks = Object.keys(books).length;
-        
+
         console.log(`📊 エクスポートデータ: ${exportData.stats.totalBooks}冊, ${exportData.stats.notesCount}メモ`);
-        
+
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2238,7 +2238,7 @@ class VirtualBookshelf {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         alert('📦 library.json をエクスポートしました！');
     }
 
@@ -2255,44 +2255,44 @@ class VirtualBookshelf {
 • 全ての並び順設定
 
 この操作は元に戻せません。`;
-        
+
         if (!confirm(confirmMessage)) {
             return;
         }
-        
+
         try {
             this.showLoading();
-            
+
             // BookManagerで蔵書をクリア
             await this.bookManager.clearAllBooks();
-            
+
             // 全てのuserDataを完全にクリア
             if (this.userData) {
                 // 本棚データを完全クリア
                 this.userData.bookshelves = [];
-                
-                // 評価・メモを完全クリア  
+
+                // 評価・メモを完全クリア
                 this.userData.notes = {};
-                
+
                 // 並び順データを完全クリア
                 this.userData.bookOrder = {};
-                
+
                 // 統計データもリセット
                 this.userData.stats = {
                     totalBooks: 0,
                     notesCount: 0
                 };
             }
-            
+
             // 本のリストを更新
             this.books = [];
             this.filteredBooks = [];
-            
+
             // UIを更新
             this.saveUserData();
             this.updateDisplay();
             this.updateStats();
-            
+
             alert('✅ 全データを完全にクリアしました');
         } catch (error) {
             console.error('蔵書クリア中にエラーが発生しました:', error);
@@ -2305,40 +2305,40 @@ class VirtualBookshelf {
     renderBookshelfOverview() {
         const overviewSection = document.getElementById('bookshelves-overview');
         const grid = document.getElementById('bookshelves-grid');
-        
+
         if (!this.userData.bookshelves || this.userData.bookshelves.length === 0) {
             overviewSection.style.display = 'none';
             return;
         }
 
         overviewSection.style.display = 'block';
-        
+
         let html = '';
         this.userData.bookshelves.forEach(bookshelf => {
             const bookCount = bookshelf.books ? bookshelf.books.length : 0;
-            
+
             // Apply custom book order for preview if it exists
             let previewBooks = [];
             if (bookshelf.books && bookshelf.books.length > 0) {
                 let orderedBooks = [...bookshelf.books];
-                
+
                 // Apply custom order if exists
                 if (this.userData.bookOrder && this.userData.bookOrder[bookshelf.id]) {
                     const customOrder = this.userData.bookOrder[bookshelf.id];
                     orderedBooks.sort((a, b) => {
                         const aIndex = customOrder.indexOf(a);
                         const bIndex = customOrder.indexOf(b);
-                        
+
                         if (aIndex === -1 && bIndex === -1) return 0;
                         if (aIndex === -1) return 1;
                         if (bIndex === -1) return -1;
                         return aIndex - bIndex;
                     });
                 }
-                
+
                 previewBooks = orderedBooks.slice(0, 8);
             }
-            
+
             const textOnlyClass = this.showImagesInOverview ? '' : 'text-only';
             const isPublic = bookshelf.isPublic || false;
             const publicBadge = isPublic ? '<span class="public-badge">📤 公開中</span>' : '';
@@ -2372,7 +2372,7 @@ class VirtualBookshelf {
         });
 
         grid.innerHTML = html;
-        
+
         // Add click handlers for bookshelf actions
         grid.addEventListener('click', (e) => {
             if (e.target.classList.contains('select-bookshelf')) {
@@ -2422,10 +2422,10 @@ class VirtualBookshelf {
         this.showImagesInOverview = !this.showImagesInOverview;
         this.userData.settings.showImagesInOverview = this.showImagesInOverview;
         this.saveUserData();
-        
+
         const button = document.getElementById('toggle-bookshelf-display');
         button.textContent = this.showImagesInOverview ? '🖼️ 画像表示切替' : '📝 テキストのみ';
-        
+
         this.renderBookshelfOverview();
     }
 
@@ -2433,7 +2433,7 @@ class VirtualBookshelf {
         const bookshelf = document.getElementById('bookshelf');
         bookshelf.innerHTML = `<div class="error-message">❌ ${message}</div>`;
     }
-    
+
     generateStarRating(rating) {
         let stars = '';
         for (let i = 1; i <= 5; i++) {
@@ -2443,7 +2443,7 @@ class VirtualBookshelf {
         }
         return stars;
     }
-    
+
     displayStarRating(rating) {
         if (!rating || rating === 0) return '';
         let stars = '';
@@ -2452,7 +2452,7 @@ class VirtualBookshelf {
         }
         return `<div class="book-rating"><span class="stars">${stars}</span></div>`;
     }
-    
+
     saveRating(asin, rating) {
         if (!this.userData.notes[asin]) {
             this.userData.notes[asin] = { memo: '', rating: 0 };
@@ -2460,7 +2460,7 @@ class VirtualBookshelf {
         this.userData.notes[asin].rating = rating;
         this.saveUserData();
     }
-    
+
     /**
      * ローディング表示
      */
@@ -2493,7 +2493,7 @@ class VirtualBookshelf {
         container.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            
+
             const target = e.target.closest('.bookshelf-item');
             if (target && target !== draggedBookshelf) {
                 target.style.borderTop = '2px solid #3498db';
@@ -2509,7 +2509,7 @@ class VirtualBookshelf {
 
         container.addEventListener('drop', (e) => {
             e.preventDefault();
-            
+
             const target = e.target.closest('.bookshelf-item');
             if (target && target !== draggedBookshelf) {
                 const draggedId = draggedBookshelf.dataset.id;
@@ -2528,7 +2528,7 @@ class VirtualBookshelf {
                 e.target.classList.remove('dragging');
                 draggedBookshelf = null;
             }
-            
+
             // Clear all visual feedback
             container.querySelectorAll('.bookshelf-item').forEach(item => {
                 item.style.borderTop = '';
@@ -2543,15 +2543,15 @@ class VirtualBookshelf {
         if (draggedIndex !== -1 && targetIndex !== -1) {
             // Remove the dragged bookshelf from its current position
             const draggedBookshelf = this.userData.bookshelves.splice(draggedIndex, 1)[0];
-            
+
             // Insert it at the new position
             this.userData.bookshelves.splice(targetIndex, 0, draggedBookshelf);
-            
+
             // Save the changes
             this.saveUserData();
             this.updateBookshelfSelector();
             this.renderBookshelfList();
-            
+
             console.log(`📚 本棚「${draggedBookshelf.name}」を移動しました`);
         }
     }
@@ -2573,7 +2573,7 @@ class VirtualBookshelf {
         results.style.display = 'block';
 
         modal.classList.add('show');
-        
+
         // 自動的に静的ページを生成
         this.generateStaticPage();
     }
